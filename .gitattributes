@@ -1,0 +1,21 @@
+# Normalize line endings ke LF untuk semua platform
+* text=auto eol=lf
+
+# Force LF untuk script dan config
+*.sh text eol=lf
+*.py text eol=lf
+*.ts text eol=lf
+*.tsx text eol=lf
+*.js text eol=lf
+*.json text eol=lf
+*.md text eol=lf
+*.yaml text eol=lf
+*.yml text eol=lf
+*.html text eol=lf
+*.css text eol=lf
+
+# Binary files — jangan dikonversi
+*.png binary
+*.jpg binary
+*.ico binary
+*.node binary

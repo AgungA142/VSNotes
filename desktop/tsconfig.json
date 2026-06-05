@@ -1,0 +1,30 @@
+﻿{
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "jsx": "react-jsx",
+    "moduleResolution": "bundler",
+    "outDir": "./dist",
+    "baseUrl": ".",
+    "skipLibCheck": true,
+    "composite": true,
+    "paths": {
+      "@shared/*": ["./src/shared/*"],
+      "@main/*": ["./src/main/*"],
+      "@renderer/*": ["./src/renderer/*"],
+      "@preload/*": ["./src/preload/*"],
+      "@vsnotes/shared-types": ["../packages/shared-types/src"],
+      "@vsnotes/validation": ["../packages/validation/src"],
+      "@vsnotes/api-client": ["../packages/api-client/src"]
+    }
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist"],
+  "references": [
+    { "path": "../packages/shared-types" },
+    { "path": "../packages/validation" },
+    { "path": "../packages/api-client" }
+  ]
+}

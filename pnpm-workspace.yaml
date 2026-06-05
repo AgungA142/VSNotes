@@ -1,0 +1,12 @@
+packages:
+  - "packages/*"
+  - "desktop"
+  - "backend"
+  - "web"
+allowBuilds:
+  '@scarf/scarf': false
+  bcrypt: true
+  better-sqlite3: true
+  electron: true
+  esbuild: true
+  puppeteer: true

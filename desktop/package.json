@@ -1,0 +1,72 @@
+{
+  "name": "vsnotes-desktop",
+  "version": "1.0.0",
+  "description": "VSNotes - Desktop Application",
+  "main": "dist/main/index.js",
+  "scripts": {
+    "dev": "electron-vite dev",
+    "build": "electron-vite build",
+    "preview": "electron-vite preview",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:ui": "vitest --ui"
+  },
+  "dependencies": {
+    "@tanstack/react-query": "^5.17.19",
+    "@vsnotes/api-client": "workspace:*",
+    "@vsnotes/shared-types": "workspace:*",
+    "@vsnotes/validation": "workspace:*",
+    "@xstate/react": "^4.1.0",
+    "better-sqlite3": "^9.6.0",
+    "electron-store": "^8.1.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-router-dom": "^7.15.1",
+    "react-window": "^2.2.7",
+    "xstate": "^5.8.0",
+    "zod": "^3.22.4",
+    "zustand": "^4.4.7"
+  },
+  "build": {
+    "appId": "app.vsnotes.desktop",
+    "productName": "VSNotes",
+    "extraResources": [
+      {
+        "from": "python",
+        "to": "python",
+        "filter": [
+          "**/*"
+        ]
+      }
+    ],
+    "win": {
+      "target": "nsis"
+    },
+    "mac": {
+      "target": "dmg"
+    },
+    "linux": {
+      "target": "AppImage"
+    }
+  },
+  "devDependencies": {
+    "@tailwindcss/typography": "^0.5.19",
+    "@types/better-sqlite3": "^7.6.8",
+    "@types/node": "^20.11.5",
+    "@types/react": "^18.2.48",
+    "@types/react-dom": "^18.2.18",
+    "@vitejs/plugin-react": "^4.2.1",
+    "@vitest/ui": "^4.1.6",
+    "autoprefixer": "^10.4.17",
+    "electron": "^28.1.4",
+    "electron-builder": "^24.9.1",
+    "electron-vite": "^2.0.0",
+    "fast-check": "^4.8.0",
+    "postcss": "^8.4.33",
+    "tailwindcss": "^3.4.1",
+    "typescript": "^5.3.3",
+    "vite": "^5.0.11",
+    "vitest": "^1.2.0"
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "$schema": "https://railway.app/railway.schema.json",
+  "build": {
+    "builder": "NIXPACKS",
+    "buildCommand": "pnpm install --frozen-lockfile && pnpm --filter @vsnotes/shared-types build && pnpm --filter @vsnotes/validation build && pnpm --filter vsnotes-backend build"
+  },
+  "deploy": {
+    "startCommand": "node backend/dist/index.js",
+    "restartPolicyType": "ON_FAILURE",
+    "restartPolicyMaxRetries": 3,
+    "healthcheckPath": "/health",
+    "healthcheckTimeout": 30
+  }
+}
