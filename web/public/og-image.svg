@@ -1,0 +1,114 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1200" y2="630" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#0f172a"/>
+      <stop offset="100%" stop-color="#1e1b4b"/>
+    </linearGradient>
+    <linearGradient id="logo-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#4338ca"/>
+      <stop offset="60%" stop-color="#6d28d9"/>
+      <stop offset="100%" stop-color="#5b21b6"/>
+    </linearGradient>
+    <radialGradient id="glow1" cx="80%" cy="35%" r="45%" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#6366f1" stop-opacity="0.18"/>
+      <stop offset="100%" stop-color="#6366f1" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="glow2" cx="90%" cy="85%" r="35%" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#8b5cf6" stop-opacity="0.12"/>
+      <stop offset="100%" stop-color="#8b5cf6" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <rect width="1200" height="630" fill="url(#glow1)"/>
+  <rect width="1200" height="630" fill="url(#glow2)"/>
+
+  <!-- Left accent bar -->
+  <rect x="0" y="0" width="5" height="630" fill="url(#logo-grad)"/>
+
+  <!-- ── Logo icon ── -->
+  <rect x="80" y="155" width="80" height="80" rx="18" fill="url(#logo-grad)"/>
+  <!-- screen outline -->
+  <rect x="89" y="165" width="62" height="38" rx="4" stroke="white" stroke-width="1.5" stroke-opacity=".3" fill="none"/>
+  <!-- play triangle -->
+  <path d="M108 175 L126 184 L108 193 Z" fill="white" fill-opacity=".95"/>
+  <!-- note lines -->
+  <line x1="92" y1="214" x2="150" y2="214" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-opacity=".5"/>
+  <line x1="92" y1="222" x2="123" y2="222" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-opacity=".3"/>
+
+  <!-- App name -->
+  <text x="80" y="305" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-weight="800" font-size="72" fill="white" letter-spacing="-2">VSNotes</text>
+
+  <!-- Tagline -->
+  <text x="80" y="362" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-weight="400" font-size="26" fill="#94a3b8">Catat otomatis semua video edukasi yang Anda tonton</text>
+
+  <!-- Feature chips -->
+  <rect x="80" y="400" width="168" height="36" rx="18" fill="#1e293b"/>
+  <text x="164" y="423" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="14" font-weight="500" fill="#94a3b8">Transkripsi AI</text>
+
+  <rect x="260" y="400" width="196" height="36" rx="18" fill="#1e293b"/>
+  <text x="358" y="423" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="14" font-weight="500" fill="#94a3b8">Rangkuman Otomatis</text>
+
+  <rect x="468" y="400" width="126" height="36" rx="18" fill="#1e293b"/>
+  <text x="531" y="423" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="14" font-weight="500" fill="#94a3b8">Export PDF</text>
+
+  <!-- URL -->
+  <text x="80" y="528" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="20" font-weight="600" fill="#6366f1">vsnotes.space</text>
+
+  <!-- ── Right side: App window mockup ── -->
+  <!-- Window shadow/glow -->
+  <rect x="714" y="94" width="432" height="458" rx="14" fill="#6366f1" opacity="0.06"/>
+
+  <!-- Window frame -->
+  <rect x="710" y="90" width="432" height="458" rx="12" fill="#1e293b"/>
+
+  <!-- Title bar -->
+  <rect x="710" y="90" width="432" height="40" rx="12" fill="#0f172a"/>
+  <rect x="710" y="108" width="432" height="22" fill="#0f172a"/>
+  <circle cx="736" cy="110" r="6" fill="#ef4444" opacity="0.55"/>
+  <circle cx="756" cy="110" r="6" fill="#f59e0b" opacity="0.55"/>
+  <circle cx="776" cy="110" r="6" fill="#22c55e" opacity="0.55"/>
+  <text x="926" y="115" text-anchor="middle" font-family="-apple-system, sans-serif" font-size="12" fill="#475569">VSNotes</text>
+
+  <!-- Sidebar -->
+  <rect x="710" y="130" width="54" height="418" fill="#0f172a"/>
+  <!-- Active nav indicator -->
+  <rect x="710" y="168" width="54" height="44" fill="#4338ca" opacity="0.3"/>
+  <rect x="710" y="168" width="3" height="44" fill="#6366f1"/>
+
+  <!-- Content header -->
+  <rect x="778" y="138" width="120" height="12" rx="6" fill="#334155" opacity="0.7"/>
+  <rect x="1066" y="136" width="60" height="16" rx="8" fill="#4338ca" opacity="0.5"/>
+
+  <!-- Note card 1 -->
+  <rect x="778" y="166" width="348" height="70" rx="8" fill="#0f172a" opacity="0.9"/>
+  <text x="792" y="185" font-family="-apple-system, sans-serif" font-size="10" fill="#64748b">00:02:14</text>
+  <rect x="840" y="177" width="42" height="14" rx="7" fill="#312e81" opacity="0.9"/>
+  <text x="861" y="188" text-anchor="middle" font-family="-apple-system, sans-serif" font-size="9" fill="#a5b4fc">Auto</text>
+  <rect x="792" y="198" width="260" height="7" rx="3.5" fill="#334155" opacity="0.7"/>
+  <rect x="792" y="212" width="200" height="7" rx="3.5" fill="#334155" opacity="0.5"/>
+  <rect x="792" y="226" width="230" height="7" rx="3.5" fill="#334155" opacity="0.4"/>
+
+  <!-- Note card 2 -->
+  <rect x="778" y="246" width="348" height="70" rx="8" fill="#0f172a" opacity="0.9"/>
+  <text x="792" y="265" font-family="-apple-system, sans-serif" font-size="10" fill="#64748b">00:05:41</text>
+  <rect x="840" y="257" width="52" height="14" rx="7" fill="#14532d" opacity="0.9"/>
+  <text x="866" y="268" text-anchor="middle" font-family="-apple-system, sans-serif" font-size="9" fill="#86efac">Manual</text>
+  <rect x="792" y="278" width="290" height="7" rx="3.5" fill="#334155" opacity="0.7"/>
+  <rect x="792" y="292" width="220" height="7" rx="3.5" fill="#334155" opacity="0.5"/>
+  <rect x="792" y="306" width="250" height="7" rx="3.5" fill="#334155" opacity="0.4"/>
+
+  <!-- Summary card -->
+  <rect x="778" y="326" width="348" height="108" rx="8" fill="#0f172a" opacity="0.9"/>
+  <rect x="792" y="338" width="72" height="9" rx="4.5" fill="#4338ca" opacity="0.5"/>
+  <rect x="792" y="356" width="310" height="7" rx="3.5" fill="#334155" opacity="0.55"/>
+  <rect x="792" y="370" width="280" height="7" rx="3.5" fill="#334155" opacity="0.45"/>
+  <rect x="792" y="384" width="295" height="7" rx="3.5" fill="#334155" opacity="0.45"/>
+  <rect x="792" y="398" width="240" height="7" rx="3.5" fill="#334155" opacity="0.35"/>
+  <rect x="792" y="412" width="265" height="7" rx="3.5" fill="#334155" opacity="0.3"/>
+
+  <!-- Export button -->
+  <rect x="778" y="446" width="100" height="30" rx="8" fill="#4338ca" opacity="0.7"/>
+  <text x="828" y="466" text-anchor="middle" font-family="-apple-system, sans-serif" font-size="11" fill="white">Export PDF</text>
+</svg>
