@@ -1,0 +1,13 @@
+[phases.setup]
+nixPkgs = ["python3", "pkg-config"]
+
+[phases.build]
+cmds = [
+  "pnpm install --frozen-lockfile",
+  "pnpm --filter @vsnotes/shared-types build",
+  "pnpm --filter @vsnotes/validation build",
+  "pnpm --filter vsnotes-backend build"
+]
+
+[start]
+cmd = "node backend/dist/index.js"
