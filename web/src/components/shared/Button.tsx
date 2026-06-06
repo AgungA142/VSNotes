@@ -53,11 +53,11 @@ export default function Button({
           <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
         </svg>
       ) : Icon && iconPosition === 'left' ? (
-        <Icon className="w-5 h-5 flex-shrink-0" />
+        <Icon className="w-5 h-5 flex-shrink-0" aria-hidden="true" />
       ) : null}
       {children}
       {!loading && Icon && iconPosition === 'right' ? (
-        <Icon className="w-5 h-5 flex-shrink-0" />
+        <Icon className="w-5 h-5 flex-shrink-0" aria-hidden="true" />
       ) : null}
     </>
   );

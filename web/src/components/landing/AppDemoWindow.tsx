@@ -252,6 +252,7 @@ function Step2Summary() {
 export default function AppDemoWindow({ step, progress, className = '' }: AppDemoWindowProps) {
   return (
     <div
+      aria-hidden="true"
       className={`flex flex-col rounded-xl overflow-hidden border border-gray-300/60 shadow-2xl shadow-black/30 ${className}`}
     >
       <WindowChrome />

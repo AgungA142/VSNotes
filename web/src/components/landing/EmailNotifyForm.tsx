@@ -33,7 +33,7 @@ export default function EmailNotifyForm() {
         animate={{ opacity: 1, scale: 1 }}
         className="flex flex-col items-center gap-3 py-6 text-center"
       >
-        <div className="w-12 h-12 rounded-full bg-green-500/20 flex items-center justify-center">
+        <div className="w-12 h-12 rounded-full bg-green-500/20 flex items-center justify-center" aria-hidden="true">
           <svg className="w-6 h-6 text-green-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}>
             <polyline points="20 6 9 17 4 12" />
           </svg>
@@ -48,7 +48,7 @@ export default function EmailNotifyForm() {
     <form onSubmit={handleSubmit} noValidate className="space-y-3">
       <div className="flex flex-col sm:flex-row gap-2">
         <div className="relative flex-1">
-          <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+          <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" aria-hidden="true" />
           <input
             type="email"
             value={email}
@@ -70,7 +70,7 @@ export default function EmailNotifyForm() {
         </Button>
       </div>
       {error && (
-        <p className="text-red-400 text-xs pl-1">{error}</p>
+        <p role="alert" className="text-red-400 text-xs pl-1">{error}</p>
       )}
     </form>
   );

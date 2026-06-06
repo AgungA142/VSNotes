@@ -70,6 +70,7 @@ export default function HeroSection() {
       >
         {/* Dot grid background */}
         <div
+          aria-hidden="true"
           className="absolute inset-0 pointer-events-none"
           style={{
             backgroundImage: 'radial-gradient(rgba(99,102,241,.15) 1px, transparent 1px)',
@@ -79,9 +80,9 @@ export default function HeroSection() {
           }}
         />
         {/* Glow orbs */}
-        <div className="absolute -top-32 -left-32 w-96 h-96 rounded-full pointer-events-none"
+        <div aria-hidden="true" className="absolute -top-32 -left-32 w-96 h-96 rounded-full pointer-events-none"
           style={{ background: 'radial-gradient(circle, rgba(99,102,241,.18) 0%, transparent 70%)', filter: 'blur(60px)' }} />
-        <div className="absolute -bottom-20 -right-20 w-80 h-80 rounded-full pointer-events-none"
+        <div aria-hidden="true" className="absolute -bottom-20 -right-20 w-80 h-80 rounded-full pointer-events-none"
           style={{ background: 'radial-gradient(circle, rgba(124,58,237,.14) 0%, transparent 70%)', filter: 'blur(60px)' }} />
 
         {/* Navbar */}
@@ -161,7 +162,7 @@ export default function HeroSection() {
               className="hidden lg:flex flex-col gap-4"
             >
               {/* Step indicators */}
-              <div className="flex items-center gap-1">
+              <div aria-hidden="true" className="flex items-center gap-1">
                 {STEP_LABELS.map((s, i) => (
                   <React.Fragment key={i}>
                     <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs transition-all duration-400 ${
@@ -201,7 +202,7 @@ export default function HeroSection() {
         </div>
 
         {/* Scroll indicator */}
-        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1 text-slate-600">
+        <div aria-hidden="true" className="absolute bottom-6 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1 text-slate-600">
           <span className="text-[10px] uppercase tracking-widest">Scroll</span>
           <motion.div
             animate={{ y: [0, 6, 0] }}
