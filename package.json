@@ -9,6 +9,7 @@
     "server:dev": "pnpm --filter backend dev",
     "server:start": "pnpm --filter backend start",
     "web:dev": "pnpm --filter web dev",
+    "web:build": "pnpm --filter video-summary-notes-web build",
     "test": "pnpm -r test",
     "test:pbt": "pnpm -r test:pbt",
     "lint": "eslint . --ext .ts,.tsx",
