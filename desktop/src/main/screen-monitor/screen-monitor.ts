@@ -35,7 +35,7 @@ const LOCAL_PLAYER_PATTERNS = ['vlc', 'mpv', 'mpc', 'media player'];
 
 const MOTION_THRESHOLD = 0.05;
 const NO_MOTION_TIMEOUT_SEC = 30;       // idle mode: detik tanpa motion → video berhenti
-const VIDEO_PAUSE_TIMEOUT_SEC = 20;     // locked mode: detik tanpa motion → video di-pause
+const VIDEO_PAUSE_TIMEOUT_SEC = 60;     // locked mode: detik tanpa motion DAN tanpa audio → video di-pause
 const WINDOW_GONE_GRACE_MS = 5_000;     // locked mode: ms sebelum tab dianggap tertutup
 
 // ============================================================================
@@ -153,7 +153,7 @@ export class ScreenMonitor {
     }
 
     if (this.isSessionActive && this.lockedWindowTitle) {
-      this.checkLockedWindow(sources);
+      await this.checkLockedWindow(sources);
     } else {
       await this.checkAnyVideo(sources);
     }
@@ -163,7 +163,7 @@ export class ScreenMonitor {
   // Locked-window mode
   // ============================================================================
 
-  private checkLockedWindow(sources: Electron.DesktopCapturerSource[]): void {
+  private async checkLockedWindow(sources: Electron.DesktopCapturerSource[]): Promise<void> {
     const lockedSource = this.findLockedWindow(sources);
 
     if (!lockedSource) {
@@ -180,7 +180,16 @@ export class ScreenMonitor {
 
     const hasMotion = this.checkMotion(lockedSource.thumbnail);
 
-    if (hasMotion) {
+    // Cek audio — jika ada audio aktif, video pasti masih berjalan
+    const audioSessions = this.audioSessionDetector
+      ? await this.audioSessionDetector.getAudioSessions()
+      : null;
+    const hasAudio =
+      audioSessions !== null && audioSessions.length > 0;
+
+    const isPlaying = hasMotion || hasAudio;
+
+    if (isPlaying) {
       this.lastMotionAt = new Date();
 
       if (this.isVideoPaused) {
@@ -190,7 +199,7 @@ export class ScreenMonitor {
         this.callbacks.onVideoResumed?.();
       }
 
-      // Reset timer pause
+      // Reset timer pause — hanya trigger jika tidak ada motion DAN tidak ada audio
       this.clearNoMotionTimer();
       this.noMotionTimer = setTimeout(() => {
         if (this.lockedWindowTitle && !this.isVideoPaused) {
@@ -199,7 +208,7 @@ export class ScreenMonitor {
         }
       }, VIDEO_PAUSE_TIMEOUT_SEC * 1_000);
     }
-    // Jika tidak ada motion, biarkan timer berjalan
+    // Jika tidak ada motion dan tidak ada audio, biarkan timer berjalan
   }
 
   private findLockedWindow(
