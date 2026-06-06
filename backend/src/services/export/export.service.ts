@@ -381,19 +381,27 @@ function findChromiumExecutable(): string | undefined {
 
 async function generatePdf(html: string): Promise<Buffer> {
   logger.info('[Export] Launching Puppeteer for PDF generation');
-  const executablePath = findChromiumExecutable();
-  logger.info(`[Export] Chromium path: ${executablePath ?? 'not found — using bundled'}`);
-  if (!executablePath) {
-    // Log semua kandidat untuk membantu debug jika bundled juga gagal
-    const { execSync } = require('child_process') as typeof import('child_process');
+  const systemPath = findChromiumExecutable();
+
+  // Ketika tidak ada system chromium, gunakan bundled chromium dari paket puppeteer.
+  // Hapus PUPPETEER_EXECUTABLE_PATH sementara agar puppeteer tidak pakai path yang salah.
+  const envOverride = process.env.PUPPETEER_EXECUTABLE_PATH;
+  const executablePath = systemPath ?? (() => {
+    if (envOverride) delete process.env.PUPPETEER_EXECUTABLE_PATH;
     try {
-      const found = execSync('find /nix /usr/bin -name "chrom*" -type f 2>/dev/null | head -10', { encoding: 'utf8' }).trim();
-      logger.info(`[Export] Chromium candidates on disk: ${found || 'none'}`);
-    } catch { /* ignore */ }
-  }
+      const bundled = puppeteer.executablePath();
+      logger.info(`[Export] Bundled chromium path: ${bundled}`);
+      return bundled;
+    } catch {
+      return undefined;
+    }
+  })();
+
+  logger.info(`[Export] Chromium path: ${executablePath ?? 'unknown'}`);
+
   const browser = await puppeteer.launch({
     headless: true,
-    executablePath,
+    ...(executablePath ? { executablePath } : {}),
     args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage', '--single-process'],
   });
   try {
@@ -411,6 +419,10 @@ async function generatePdf(html: string): Promise<Buffer> {
     throw new AppError(500, 'PDF_GENERATION_FAILED', 'Gagal membuat PDF. Pastikan Chromium tersedia.');
   } finally {
     await browser.close();
+    // Restore env var jika sempat dihapus
+    if (envOverride && !systemPath) {
+      process.env.PUPPETEER_EXECUTABLE_PATH = envOverride;
+    }
   }
 }
 
