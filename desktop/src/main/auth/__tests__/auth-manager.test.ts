@@ -63,6 +63,7 @@ function mockApiClient(overrides: Partial<Record<string, () => unknown>> = {}) {
     login: vi.fn().mockResolvedValue({ token: VALID_TOKEN, user: mockUser }),
     register: vi.fn().mockResolvedValue({ token: VALID_TOKEN, user: mockUser }),
     refreshToken: vi.fn().mockResolvedValue({ token: VALID_TOKEN }),
+    forgotPassword: vi.fn().mockResolvedValue(undefined),
     ...overrides,
   };
   vi.mocked(createApiClient).mockReturnValue(client as never);
