@@ -33,6 +33,7 @@
     "zustand": "^4.4.7"
   },
   "build": {
+    "afterPack": "./scripts/afterPack.cjs",
     "appId": "app.vsnotes.desktop",
     "productName": "VSNotes",
     "files": [
@@ -56,6 +57,7 @@
         ]
       }
     ],
+    "electronLanguages": ["en-US", "id"],
     "nsis": {
       "oneClick": false,
       "allowToChangeInstallationDirectory": true,
