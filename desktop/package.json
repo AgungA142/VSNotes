@@ -56,6 +56,13 @@
         ]
       }
     ],
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "uninstallDisplayName": "VSNotes"
+    },
     "win": {
       "target": "nsis"
     },
