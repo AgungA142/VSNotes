@@ -137,6 +137,12 @@ function createWindow(): void {
     mainWindow?.show();
   });
 
+  // Fallback: jika renderer gagal load, tetap tampilkan window
+  mainWindow.webContents.on('did-fail-load', (_e, code, desc) => {
+    console.error('[Main] Renderer failed to load:', code, desc);
+    mainWindow?.show();
+  });
+
   mainWindow.on('closed', () => {
     mainWindow = null;
   });
@@ -149,7 +155,11 @@ function createWindow(): void {
 app.whenReady().then(async () => {
   // Inisialisasi SQLite cache sebelum window dibuat
   const dbPath = path.join(app.getPath('userData'), 'cache.db');
-  initDatabase(dbPath);
+  try {
+    initDatabase(dbPath);
+  } catch (err) {
+    console.error('[Main] initDatabase failed:', err);
+  }
 
   createWindow();
 
