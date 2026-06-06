@@ -319,41 +319,61 @@ function buildHtml(
 // PDF generator
 // ============================================================================
 
+function isRealChromiumBinary(p: string): boolean {
+  // Stub snap di Ubuntu dimulai dengan "#!/bin/sh" — bukan binary ELF
+  const { readFileSync } = require('fs') as typeof import('fs');
+  try {
+    const header = readFileSync(p, { flag: 'r' });
+    // ELF magic: 0x7F 'E' 'L' 'F'
+    return header[0] === 0x7f && header[1] === 0x45;
+  } catch {
+    return false;
+  }
+}
+
 function findChromiumExecutable(): string | undefined {
   const { execSync } = require('child_process') as typeof import('child_process');
 
-  // Resolve PUPPETEER_EXECUTABLE_PATH — bisa berupa full path atau sekedar nama perintah
-  const fromEnv = process.env.PUPPETEER_EXECUTABLE_PATH;
-  if (fromEnv) {
-    if (fromEnv.startsWith('/')) return fromEnv; // already absolute
-    // Nama perintah (mis. "chromium") — coba resolve dengan which
+  // Prioritaskan path Nix (Railway nixpacks) — selalu binary nyata, bukan stub
+  const nixCandidates = [
+    '/nix/var/nix/profiles/default/bin/chromium',
+    '/root/.nix-profile/bin/chromium',
+  ];
+  for (const p of nixCandidates) {
     try {
-      const resolved = execSync(`which ${fromEnv}`, { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim();
-      if (resolved) return resolved;
-    } catch { /* not in PATH */ }
+      execSync(`test -x ${p}`, { stdio: 'ignore' });
+      if (isRealChromiumBinary(p)) {
+        logger.info(`[Export] Nix chromium found: ${p}`);
+        return p;
+      }
+    } catch { /* not found */ }
   }
 
-  // Cek path absolut umum di Linux (Railway/Nix)
+  // Resolve PUPPETEER_EXECUTABLE_PATH — hanya pakai jika binary nyata
+  const fromEnv = process.env.PUPPETEER_EXECUTABLE_PATH;
+  if (fromEnv) {
+    const absPath = fromEnv.startsWith('/')
+      ? fromEnv
+      : (() => {
+          try {
+            return execSync(`which ${fromEnv}`, { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim();
+          } catch { return ''; }
+        })();
+    if (absPath && isRealChromiumBinary(absPath)) return absPath;
+    if (absPath) logger.warn(`[Export] PUPPETEER_EXECUTABLE_PATH "${absPath}" adalah stub snap, diabaikan`);
+  }
+
+  // Path absolut umum — skip /usr/bin/chromium-browser (selalu Ubuntu snap stub)
   const candidates = [
-    '/usr/bin/chromium',
-    '/usr/bin/chromium-browser',
-    '/usr/bin/google-chrome',
     '/usr/bin/google-chrome-stable',
-    '/nix/var/nix/profiles/default/bin/chromium',
+    '/usr/bin/google-chrome',
+    '/usr/bin/chromium',
   ];
   for (const p of candidates) {
     try {
       execSync(`test -x ${p}`, { stdio: 'ignore' });
-      return p;
+      if (isRealChromiumBinary(p)) return p;
     } catch { /* not found */ }
-  }
-
-  // Last resort: which
-  for (const name of ['chromium', 'chromium-browser', 'google-chrome']) {
-    try {
-      const resolved = execSync(`which ${name}`, { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim();
-      if (resolved) return resolved;
-    } catch { /* not in PATH */ }
   }
 
   return undefined;
@@ -362,7 +382,15 @@ function findChromiumExecutable(): string | undefined {
 async function generatePdf(html: string): Promise<Buffer> {
   logger.info('[Export] Launching Puppeteer for PDF generation');
   const executablePath = findChromiumExecutable();
-  logger.info(`[Export] Chromium path: ${executablePath ?? 'bundled'}`);
+  logger.info(`[Export] Chromium path: ${executablePath ?? 'not found — using bundled'}`);
+  if (!executablePath) {
+    // Log semua kandidat untuk membantu debug jika bundled juga gagal
+    const { execSync } = require('child_process') as typeof import('child_process');
+    try {
+      const found = execSync('find /nix /usr/bin -name "chrom*" -type f 2>/dev/null | head -10', { encoding: 'utf8' }).trim();
+      logger.info(`[Export] Chromium candidates on disk: ${found || 'none'}`);
+    } catch { /* ignore */ }
+  }
   const browser = await puppeteer.launch({
     headless: true,
     executablePath,
