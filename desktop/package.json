@@ -2,6 +2,10 @@
   "name": "vsnotes-desktop",
   "version": "1.0.0",
   "description": "VSNotes - Desktop Application",
+  "author": {
+    "name": "AgungA142",
+    "email": "agung.alfatah43@gmail.com"
+  },
   "main": "dist/main/index.js",
   "scripts": {
     "dev": "electron-vite dev",
@@ -31,6 +35,13 @@
   "build": {
     "appId": "app.vsnotes.desktop",
     "productName": "VSNotes",
+    "files": [
+      "dist/**",
+      "package.json"
+    ],
+    "directories": {
+      "output": "release"
+    },
     "publish": {
       "provider": "github",
       "owner": "AgungA142",
