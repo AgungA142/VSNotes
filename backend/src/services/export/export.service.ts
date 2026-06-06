@@ -320,8 +320,20 @@ function buildHtml(
 // ============================================================================
 
 function findChromiumExecutable(): string | undefined {
-  if (process.env.PUPPETEER_EXECUTABLE_PATH) return process.env.PUPPETEER_EXECUTABLE_PATH;
-  // Cek path umum di Linux (Railway/Nix)
+  const { execSync } = require('child_process') as typeof import('child_process');
+
+  // Resolve PUPPETEER_EXECUTABLE_PATH — bisa berupa full path atau sekedar nama perintah
+  const fromEnv = process.env.PUPPETEER_EXECUTABLE_PATH;
+  if (fromEnv) {
+    if (fromEnv.startsWith('/')) return fromEnv; // already absolute
+    // Nama perintah (mis. "chromium") — coba resolve dengan which
+    try {
+      const resolved = execSync(`which ${fromEnv}`, { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim();
+      if (resolved) return resolved;
+    } catch { /* not in PATH */ }
+  }
+
+  // Cek path absolut umum di Linux (Railway/Nix)
   const candidates = [
     '/usr/bin/chromium',
     '/usr/bin/chromium-browser',
@@ -329,13 +341,21 @@ function findChromiumExecutable(): string | undefined {
     '/usr/bin/google-chrome-stable',
     '/nix/var/nix/profiles/default/bin/chromium',
   ];
-  const { execSync } = require('child_process') as typeof import('child_process');
   for (const p of candidates) {
     try {
       execSync(`test -x ${p}`, { stdio: 'ignore' });
       return p;
     } catch { /* not found */ }
   }
+
+  // Last resort: which
+  for (const name of ['chromium', 'chromium-browser', 'google-chrome']) {
+    try {
+      const resolved = execSync(`which ${name}`, { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim();
+      if (resolved) return resolved;
+    } catch { /* not in PATH */ }
+  }
+
   return undefined;
 }
 
