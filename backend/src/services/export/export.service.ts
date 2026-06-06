@@ -319,13 +319,18 @@ function buildHtml(
 // PDF generator
 // ============================================================================
 
+// Hapus PUPPETEER_EXECUTABLE_PATH saat modul dimuat jika isinya bukan path absolut.
+// Railway menyetel ini ke "chromium" (nama perintah, bukan path), menyebabkan Puppeteer crash.
+if (process.env.PUPPETEER_EXECUTABLE_PATH && !process.env.PUPPETEER_EXECUTABLE_PATH.startsWith('/')) {
+  delete process.env.PUPPETEER_EXECUTABLE_PATH;
+}
+
 function isRealChromiumBinary(p: string): boolean {
-  // Stub snap di Ubuntu dimulai dengan "#!/bin/sh" — bukan binary ELF
+  // Stub snap Ubuntu dimulai dengan "#!/bin/sh" — bukan binary ELF
   const { readFileSync } = require('fs') as typeof import('fs');
   try {
     const header = readFileSync(p, { flag: 'r' });
-    // ELF magic: 0x7F 'E' 'L' 'F'
-    return header[0] === 0x7f && header[1] === 0x45;
+    return header[0] === 0x7f && header[1] === 0x45; // ELF magic
   } catch {
     return false;
   }
@@ -334,42 +339,31 @@ function isRealChromiumBinary(p: string): boolean {
 function findChromiumExecutable(): string | undefined {
   const { execSync } = require('child_process') as typeof import('child_process');
 
-  // Prioritaskan path Nix (Railway nixpacks) — selalu binary nyata, bukan stub
-  const nixCandidates = [
-    '/nix/var/nix/profiles/default/bin/chromium',
-    '/root/.nix-profile/bin/chromium',
-  ];
-  for (const p of nixCandidates) {
+  // 1. Cari bundled Chrome puppeteer di node_modules (pnpm cache)
+  try {
+    const found = execSync(
+      'find /app/node_modules/.pnpm /root/.cache/puppeteer -name "chrome" -type f 2>/dev/null | head -3',
+      { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }
+    ).trim();
+    if (found) {
+      const first = found.split('\n')[0];
+      if (first && isRealChromiumBinary(first)) {
+        logger.info(`[Export] Puppeteer bundled chrome found: ${first}`);
+        return first;
+      }
+    }
+  } catch { /* ignore */ }
+
+  // 2. Nix paths (nixpacks Railway)
+  for (const p of ['/nix/var/nix/profiles/default/bin/chromium', '/root/.nix-profile/bin/chromium']) {
     try {
       execSync(`test -x ${p}`, { stdio: 'ignore' });
-      if (isRealChromiumBinary(p)) {
-        logger.info(`[Export] Nix chromium found: ${p}`);
-        return p;
-      }
+      if (isRealChromiumBinary(p)) return p;
     } catch { /* not found */ }
   }
 
-  // Resolve PUPPETEER_EXECUTABLE_PATH — hanya pakai jika binary nyata
-  const fromEnv = process.env.PUPPETEER_EXECUTABLE_PATH;
-  if (fromEnv) {
-    const absPath = fromEnv.startsWith('/')
-      ? fromEnv
-      : (() => {
-          try {
-            return execSync(`which ${fromEnv}`, { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim();
-          } catch { return ''; }
-        })();
-    if (absPath && isRealChromiumBinary(absPath)) return absPath;
-    if (absPath) logger.warn(`[Export] PUPPETEER_EXECUTABLE_PATH "${absPath}" adalah stub snap, diabaikan`);
-  }
-
-  // Path absolut umum — skip /usr/bin/chromium-browser (selalu Ubuntu snap stub)
-  const candidates = [
-    '/usr/bin/google-chrome-stable',
-    '/usr/bin/google-chrome',
-    '/usr/bin/chromium',
-  ];
-  for (const p of candidates) {
+  // 3. Path absolut umum — skip /usr/bin/chromium-browser (Ubuntu snap stub)
+  for (const p of ['/usr/bin/google-chrome-stable', '/usr/bin/google-chrome', '/usr/bin/chromium']) {
     try {
       execSync(`test -x ${p}`, { stdio: 'ignore' });
       if (isRealChromiumBinary(p)) return p;
@@ -381,23 +375,8 @@ function findChromiumExecutable(): string | undefined {
 
 async function generatePdf(html: string): Promise<Buffer> {
   logger.info('[Export] Launching Puppeteer for PDF generation');
-  const systemPath = findChromiumExecutable();
-
-  // Ketika tidak ada system chromium, gunakan bundled chromium dari paket puppeteer.
-  // Hapus PUPPETEER_EXECUTABLE_PATH sementara agar puppeteer tidak pakai path yang salah.
-  const envOverride = process.env.PUPPETEER_EXECUTABLE_PATH;
-  const executablePath = systemPath ?? (() => {
-    if (envOverride) delete process.env.PUPPETEER_EXECUTABLE_PATH;
-    try {
-      const bundled = puppeteer.executablePath();
-      logger.info(`[Export] Bundled chromium path: ${bundled}`);
-      return bundled;
-    } catch {
-      return undefined;
-    }
-  })();
-
-  logger.info(`[Export] Chromium path: ${executablePath ?? 'unknown'}`);
+  const executablePath = findChromiumExecutable();
+  logger.info(`[Export] Chromium path: ${executablePath ?? 'not found — puppeteer will try default'}`);
 
   const browser = await puppeteer.launch({
     headless: true,
@@ -419,10 +398,6 @@ async function generatePdf(html: string): Promise<Buffer> {
     throw new AppError(500, 'PDF_GENERATION_FAILED', 'Gagal membuat PDF. Pastikan Chromium tersedia.');
   } finally {
     await browser.close();
-    // Restore env var jika sempat dihapus
-    if (envOverride && !systemPath) {
-      process.env.PUPPETEER_EXECUTABLE_PATH = envOverride;
-    }
   }
 }
 
