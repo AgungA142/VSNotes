@@ -82,6 +82,8 @@ export class AudioCaptureManager {
   private lineBuffer: string = '';
   private mainWindow: BrowserWindow;
   private onChunkUploaded?: () => void;
+  private firstChunkReceived = false;
+  private noChunkWarningTimer: ReturnType<typeof setTimeout> | null = null;
 
   constructor(mainWindow: BrowserWindow, callbacks?: { onChunkUploaded?: () => void }) {
     this.mainWindow = mainWindow;
@@ -100,6 +102,19 @@ export class AudioCaptureManager {
 
     this.sessionId = sessionId;
     this.lineBuffer = '';
+    this.firstChunkReceived = false;
+
+    // Peringatan jika 90 detik tidak ada chunk — kemungkinan audio agent tidak berjalan normal
+    this.noChunkWarningTimer = setTimeout(() => {
+      if (!this.firstChunkReceived && this.process) {
+        this.showCaptureFailedNotification(
+          'Audio belum terekam setelah 90 detik. Pastikan:\n' +
+          '1. Tidak ada antivirus yang memblokir VSNotes\n' +
+          '2. Perangkat audio aktif dan memutar suara\n' +
+          '3. "Stereo Mix" diaktifkan di Sound Settings Windows'
+        );
+      }
+    }, 90_000);
 
     const { exe, args } = getAudioAgentCommand();
 
@@ -131,6 +146,11 @@ export class AudioCaptureManager {
 
   stop(): Promise<void> {
     if (!this.process) return Promise.resolve();
+
+    if (this.noChunkWarningTimer) {
+      clearTimeout(this.noChunkWarningTimer);
+      this.noChunkWarningTimer = null;
+    }
 
     this.sendCommand({ action: 'stop' });
 
@@ -207,6 +227,14 @@ export class AudioCaptureManager {
   private handleChunk(chunk: AudioChunkEvent): void {
     const sessionId = this.sessionId;
     if (!sessionId) return;
+
+    if (!this.firstChunkReceived) {
+      this.firstChunkReceived = true;
+      if (this.noChunkWarningTimer) {
+        clearTimeout(this.noChunkWarningTimer);
+        this.noChunkWarningTimer = null;
+      }
+    }
 
     // Fire-and-forget; errors are handled inside
     this.uploadChunk(sessionId, chunk).catch((err) => {
