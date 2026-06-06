@@ -7,7 +7,7 @@
 
 import { spawn, ChildProcess } from 'child_process';
 import path from 'path';
-import { app, BrowserWindow, Notification } from 'electron';
+import { app, BrowserWindow, Notification, dialog, shell } from 'electron';
 import { createApiClient } from '@vsnotes/api-client';
 import { storeHelpers } from '@main/config/store';
 import { insertOperation } from '@main/sync/database';
@@ -121,10 +121,7 @@ export class AudioCaptureManager {
 
       // Jika exit < 3 detik dengan kode error → kemungkinan diblokir antivirus atau tidak ada device
       if (code !== 0 && code !== null && aliveMs < 3_000) {
-        this.showCaptureFailedNotification(
-          'Audio capture tidak bisa dimulai. Pastikan antivirus tidak memblokir VSNotes, ' +
-          'atau periksa apakah perangkat audio tersedia.'
-        );
+        this.showBlockedByAntivirusDialog();
       }
     });
 
@@ -278,10 +275,32 @@ export class AudioCaptureManager {
 
   private showCaptureFailedNotification(body: string): void {
     if (Notification.isSupported()) {
-      new Notification({
-        title: 'Audio Capture Gagal',
-        body,
-      }).show();
+      new Notification({ title: 'Audio Capture Gagal', body }).show();
     }
+  }
+
+  private showBlockedByAntivirusDialog(): void {
+    const win = BrowserWindow.getFocusedWindow() ?? BrowserWindow.getAllWindows()[0];
+    dialog.showMessageBox(win ?? new BrowserWindow({ show: false }), {
+      type: 'warning',
+      title: 'Audio Capture Diblokir',
+      message: 'Audio capture tidak bisa dimulai',
+      detail:
+        'Windows Security kemungkinan memblokir komponen audio VSNotes (audio_agent.exe).\n\n' +
+        'Cara mengizinkan:\n' +
+        '1. Klik "Buka Windows Security" di bawah\n' +
+        '2. Pilih "Virus & threat protection"\n' +
+        '3. Klik "Protection history"\n' +
+        '4. Temukan entri VSNotes / audio_agent → klik "Allow"\n' +
+        '5. Restart VSNotes\n\n' +
+        'Jika tidak ada entri, tambahkan folder instalasi VSNotes ke Exclusions.',
+      buttons: ['Buka Windows Security', 'Nanti'],
+      defaultId: 0,
+      cancelId: 1,
+    }).then(({ response }) => {
+      if (response === 0) {
+        void shell.openExternal('windowsdefender://threat');
+      }
+    }).catch(() => {});
   }
 }
