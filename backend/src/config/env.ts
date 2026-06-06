@@ -54,11 +54,12 @@ const envSchema = z.object({
     .enum(['error', 'warn', 'info', 'http', 'verbose', 'debug', 'silly'])
     .default('info'),
 
-  // Email / SMTP (opsional — jika tidak di-set, link reset di-log ke console)
+  // Email — SMTP (primary) + Brevo HTTP API (fallback jika SMTP gagal)
   SMTP_HOST: z.string().optional().default(''),
   SMTP_PORT: z.string().default('587').transform(Number),
   SMTP_USER: z.string().optional().default(''),
   SMTP_PASS: z.string().optional().default(''),
+  BREVO_API_KEY: z.string().optional().default(''),
   FROM_EMAIL: z.string().optional().default('noreply@vsnotes.app'),
   APP_URL: z.string().optional().default('http://localhost:3000'),
 });
