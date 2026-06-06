@@ -76,6 +76,7 @@ export class ScreenMonitor {
   private lockedWindowTitle: string | null = null;
   private isVideoPaused = false;
   private windowGoneAt: Date | null = null;
+  private noActivityCount = 0;           // poll berturut-turut tanpa motion dan audio
 
   private mainWindow: BrowserWindow;
   private callbacks: ScreenMonitorCallbacks;
@@ -127,6 +128,7 @@ export class ScreenMonitor {
     this.isVideoPaused = false;
     this.windowGoneAt = null;
     this.lastMotionAt = new Date();
+    this.noActivityCount = 0;
     this.clearNoMotionTimer();
   }
 
@@ -190,25 +192,23 @@ export class ScreenMonitor {
     const isPlaying = hasMotion || hasAudio;
 
     if (isPlaying) {
+      this.noActivityCount = 0;
       this.lastMotionAt = new Date();
 
       if (this.isVideoPaused) {
-        // Video dilanjutkan kembali
         this.isVideoPaused = false;
         this.clearNoMotionTimer();
         this.callbacks.onVideoResumed?.();
       }
-
-      // Reset timer pause — hanya trigger jika tidak ada motion DAN tidak ada audio
       this.clearNoMotionTimer();
-      this.noMotionTimer = setTimeout(() => {
-        if (this.lockedWindowTitle && !this.isVideoPaused) {
-          this.isVideoPaused = true;
-          this.callbacks.onVideoPaused?.();
-        }
-      }, VIDEO_PAUSE_TIMEOUT_SEC * 1_000);
+    } else {
+      this.noActivityCount++;
+      // Pause hanya jika 3 poll berturut-turut (≥30 detik) tidak ada activity
+      if (this.noActivityCount >= 3 && !this.isVideoPaused && this.lockedWindowTitle) {
+        this.isVideoPaused = true;
+        this.callbacks.onVideoPaused?.();
+      }
     }
-    // Jika tidak ada motion dan tidak ada audio, biarkan timer berjalan
   }
 
   private findLockedWindow(
@@ -445,6 +445,7 @@ export class ScreenMonitor {
     this.lockedWindowTitle = null;
     this.isVideoPaused = false;
     this.windowGoneAt = null;
+    this.noActivityCount = 0;
   }
 
   // ============================================================================

@@ -319,12 +319,34 @@ function buildHtml(
 // PDF generator
 // ============================================================================
 
+function findChromiumExecutable(): string | undefined {
+  if (process.env.PUPPETEER_EXECUTABLE_PATH) return process.env.PUPPETEER_EXECUTABLE_PATH;
+  // Cek path umum di Linux (Railway/Nix)
+  const candidates = [
+    '/usr/bin/chromium',
+    '/usr/bin/chromium-browser',
+    '/usr/bin/google-chrome',
+    '/usr/bin/google-chrome-stable',
+    '/nix/var/nix/profiles/default/bin/chromium',
+  ];
+  const { execSync } = require('child_process') as typeof import('child_process');
+  for (const p of candidates) {
+    try {
+      execSync(`test -x ${p}`, { stdio: 'ignore' });
+      return p;
+    } catch { /* not found */ }
+  }
+  return undefined;
+}
+
 async function generatePdf(html: string): Promise<Buffer> {
   logger.info('[Export] Launching Puppeteer for PDF generation');
+  const executablePath = findChromiumExecutable();
+  logger.info(`[Export] Chromium path: ${executablePath ?? 'bundled'}`);
   const browser = await puppeteer.launch({
     headless: true,
-    executablePath: process.env.PUPPETEER_EXECUTABLE_PATH,
-    args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage'],
+    executablePath,
+    args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage', '--single-process'],
   });
   try {
     const page = await browser.newPage();
