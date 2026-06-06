@@ -101,6 +101,11 @@ declare global {
         /** Fires saat main process mengkonfirmasi update platform */
         onPlatformsUpdated(callback: (platforms: string[]) => void): CleanupFn;
       };
+
+      debug: {
+        /** Forward main-process log ke renderer DevTools console */
+        onLog(callback: (level: string, message: string) => void): CleanupFn;
+      };
     };
   }
 }

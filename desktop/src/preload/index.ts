@@ -58,6 +58,7 @@ const ALLOWED_EVENTS = new Set<string>([
   IPC.AUTH_OFFLINE_EXPIRED,
   IPC.APP_READY,
   IPC.SETTINGS_PLATFORMS_UPDATED,
+  IPC.DEBUG_LOG,
 ]);
 
 // ============================================================================
@@ -268,6 +269,18 @@ contextBridge.exposeInMainWorld('electronAPI', {
       const handler = () => callback();
       ipcRenderer.on(IPC.APP_READY, handler);
       return () => ipcRenderer.removeListener(IPC.APP_READY, handler);
+    },
+  },
+
+  // --------------------------------------------------------------------------
+  // Debug log — forward main-process logs to renderer DevTools console
+  // --------------------------------------------------------------------------
+  debug: {
+    onLog(callback: (level: string, message: string) => void): CleanupFn {
+      const handler = (_e: Electron.IpcRendererEvent, level: string, message: string) =>
+        callback(level, message);
+      ipcRenderer.on(IPC.DEBUG_LOG, handler);
+      return () => ipcRenderer.removeListener(IPC.DEBUG_LOG, handler);
     },
   },
 

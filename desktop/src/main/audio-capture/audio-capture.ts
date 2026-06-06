@@ -84,10 +84,26 @@ export class AudioCaptureManager {
   private onChunkUploaded?: () => void;
   private firstChunkReceived = false;
   private noChunkWarningTimer: ReturnType<typeof setTimeout> | null = null;
+  private chunkCount = 0;
 
   constructor(mainWindow: BrowserWindow, callbacks?: { onChunkUploaded?: () => void }) {
     this.mainWindow = mainWindow;
     this.onChunkUploaded = callbacks?.onChunkUploaded;
+  }
+
+  // --------------------------------------------------------------------------
+  // Logging — forwards to both main-process console and renderer DevTools
+  // --------------------------------------------------------------------------
+
+  private log(level: 'info' | 'warn' | 'error', message: string): void {
+    const prefix = '[AudioCapture]';
+    if (level === 'error') console.error(`${prefix} ${message}`);
+    else if (level === 'warn') console.warn(`${prefix} ${message}`);
+    else console.log(`${prefix} ${message}`);
+
+    if (!this.mainWindow.isDestroyed()) {
+      this.mainWindow.webContents.send(IPC.DEBUG_LOG, level, `${prefix} ${message}`);
+    }
   }
 
   // --------------------------------------------------------------------------
@@ -96,17 +112,23 @@ export class AudioCaptureManager {
 
   start(sessionId: string): void {
     if (this.process) {
-      console.warn('[AudioCaptureManager] Already running — ignoring start()');
+      this.log('warn', 'Already running — ignoring start()');
       return;
     }
 
     this.sessionId = sessionId;
     this.lineBuffer = '';
     this.firstChunkReceived = false;
+    this.chunkCount = 0;
+
+    const { exe, args } = getAudioAgentCommand();
+    this.log('info', `Spawning audio agent: exe="${exe}" args=${JSON.stringify(args)} packaged=${app.isPackaged} platform=${process.platform}`);
 
     // Peringatan jika 90 detik tidak ada chunk — kemungkinan audio agent tidak berjalan normal
+    // Nota: TIDAK cek this.process karena proses bisa sudah exit sebelum timer ini fire
     this.noChunkWarningTimer = setTimeout(() => {
-      if (!this.firstChunkReceived && this.process) {
+      if (!this.firstChunkReceived) {
+        this.log('warn', 'Tidak ada chunk diterima dalam 90 detik — kemungkinan audio agent gagal');
         this.showCaptureFailedNotification(
           'Audio belum terekam setelah 90 detik. Pastikan:\n' +
           '1. Tidak ada antivirus yang memblokir VSNotes\n' +
@@ -116,31 +138,37 @@ export class AudioCaptureManager {
       }
     }, 90_000);
 
-    const { exe, args } = getAudioAgentCommand();
-
+    let spawnError = false;
     this.process = spawn(exe, args, {
       stdio: ['pipe', 'pipe', 'pipe'],
     });
 
     const startedAt = Date.now();
+    this.log('info', `Process spawned pid=${this.process.pid ?? 'unknown'}`);
 
     this.process.stdout!.on('data', (data: Buffer) => this.onStdoutData(data));
     this.process.stderr!.on('data', (data: Buffer) => {
-      console.log(`[audio_agent] ${data.toString().trim()}`);
+      const text = data.toString().trim();
+      if (text) this.log('warn', `[stderr] ${text}`);
     });
-    this.process.on('error', (err) => this.onProcessError(err));
-    this.process.on('exit', (code) => {
+    this.process.on('error', (err) => {
+      spawnError = true;
+      this.onProcessError(err);
+    });
+    this.process.on('exit', (code, signal) => {
       const aliveMs = Date.now() - startedAt;
-      console.log(`[AudioCaptureManager] Process exited code=${code} aliveMs=${aliveMs}`);
+      this.log('info', `Process exited code=${code} signal=${signal} aliveMs=${aliveMs} chunksReceived=${this.chunkCount} spawnError=${spawnError}`);
       this.process = null;
 
       // Jika exit < 3 detik dengan kode error → kemungkinan diblokir antivirus atau tidak ada device
-      if (code !== 0 && code !== null && aliveMs < 3_000) {
+      if (!spawnError && code !== 0 && code !== null && aliveMs < 3_000) {
+        this.log('warn', 'Audio agent exited terlalu cepat — kemungkinan diblokir antivirus');
         this.showBlockedByAntivirusDialog();
       }
     });
 
     const deviceIndex = storeHelpers.getAudioDeviceIndex();
+    this.log('info', `Sending start command sessionId=${sessionId} deviceIndex=${deviceIndex ?? 'default'}`);
     this.sendCommand({ action: 'start', sessionId, ...(deviceIndex !== undefined && { deviceIndex }) });
   }
 
@@ -206,7 +234,7 @@ export class AudioCaptureManager {
     try {
       event = JSON.parse(line);
     } catch {
-      console.warn('[AudioCaptureManager] Could not parse stdout line:', line);
+      this.log('warn', `Could not parse stdout line: ${line}`);
       return;
     }
 
@@ -214,13 +242,16 @@ export class AudioCaptureManager {
       this.handleChunk(event as AudioChunkEvent);
     } else if (event.type === 'devices') {
       const devices = (event as { type: string; devices: AudioOutputDevice[] }).devices;
+      this.log('info', `Received device list: ${devices.length} device(s)`);
       if (!this.mainWindow.isDestroyed()) {
         this.mainWindow.webContents.send(IPC.AUDIO_DEVICES_LIST, devices);
       }
     } else if (event.type === 'error') {
       const msg = (event as { type: string; message: string }).message;
-      console.error('[AudioCaptureManager] Agent error:', msg);
+      this.log('error', `Agent error: ${msg}`);
       this.showCaptureFailedNotification(msg);
+    } else {
+      this.log('info', `Unknown event type from agent: ${event.type}`);
     }
   }
 
@@ -228,26 +259,33 @@ export class AudioCaptureManager {
     const sessionId = this.sessionId;
     if (!sessionId) return;
 
+    this.chunkCount++;
+
     if (!this.firstChunkReceived) {
       this.firstChunkReceived = true;
       if (this.noChunkWarningTimer) {
         clearTimeout(this.noChunkWarningTimer);
         this.noChunkWarningTimer = null;
       }
+      this.log('info', `First chunk received — audio agent berjalan normal`);
+    } else {
+      this.log('info', `Chunk #${this.chunkCount} received durationSec=${chunk.durationSec}`);
     }
 
     // Fire-and-forget; errors are handled inside
     this.uploadChunk(sessionId, chunk).catch((err) => {
-      console.error('[AudioCaptureManager] Unhandled upload error:', err);
+      this.log('error', `Unhandled upload error: ${err instanceof Error ? err.message : String(err)}`);
     });
   }
 
   private async uploadChunk(sessionId: string, chunk: AudioChunkEvent): Promise<void> {
     const token = storeHelpers.getAuthToken();
     const apiClient = createApiClient(API_BASE_URL, token);
+    this.log('info', `Uploading chunk #${this.chunkCount} sessionId=${sessionId} hasToken=${!!token}`);
 
     try {
       await uploadWithRetry(apiClient, sessionId, chunk);
+      this.log('info', `Chunk #${this.chunkCount} uploaded successfully`);
 
       this.onChunkUploaded?.();
 
@@ -261,7 +299,7 @@ export class AudioCaptureManager {
       }
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
-      console.error('[AudioCaptureManager] All retries failed, queuing chunk:', message);
+      this.log('error', `All retries failed, queuing chunk: ${message}`);
 
       // Persist to SQLite pending_operations for later sync
       insertOperation({
@@ -285,16 +323,21 @@ export class AudioCaptureManager {
   }
 
   private onProcessError(err: Error): void {
-    console.error('[AudioCaptureManager] Process error:', err.message);
+    this.log('error', `Process spawn error: ${err.message} (code=${(err as NodeJS.ErrnoException).code})`);
 
+    const isNotFound =
+      (err as NodeJS.ErrnoException).code === 'ENOENT' ||
+      err.message.includes('ENOENT');
     const isPermissionError =
       err.message.includes('EACCES') ||
       err.message.includes('EPERM') ||
       err.message.includes('permission');
 
-    const body = isPermissionError
-      ? 'Izin ditolak untuk merekam audio sistem. Periksa pengaturan izin di Pengaturan Sistem.'
-      : `Gagal memulai audio capture: ${err.message}`;
+    const body = isNotFound
+      ? `Audio agent tidak ditemukan di: ${getAudioAgentCommand().exe}`
+      : isPermissionError
+        ? 'Izin ditolak untuk merekam audio sistem. Periksa pengaturan izin di Pengaturan Sistem.'
+        : `Gagal memulai audio capture: ${err.message}`;
 
     this.showCaptureFailedNotification(body);
     this.process = null;

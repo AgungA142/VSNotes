@@ -23,6 +23,15 @@ function App() {
 
   useAuthEvents();
 
+  // Forward main-process debug logs to DevTools console (Ctrl+Shift+I)
+  useEffect(() => {
+    return window.electronAPI.debug.onLog((level, message) => {
+      if (level === 'error') console.error('[Main]', message);
+      else if (level === 'warn') console.warn('[Main]', message);
+      else console.log('[Main]', message);
+    });
+  }, []);
+
   useEffect(() => {
     const timer = setTimeout(() => setSplashDone(true), SPLASH_MIN_MS);
     checkAuth();

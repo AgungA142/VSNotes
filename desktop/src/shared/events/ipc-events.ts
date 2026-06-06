@@ -73,3 +73,6 @@ export const SESSION_DELETE_CACHE = 'session:delete-cache';
 // User settings events
 export const SETTINGS_PLATFORMS_UPDATE = 'settings:platforms-update'; // renderer → main: update watchPlatforms
 export const SETTINGS_PLATFORMS_UPDATED = 'settings:platforms-updated'; // main → renderer: confirmed update
+
+// Debug logging — main process → renderer (visible in DevTools console)
+export const DEBUG_LOG = 'debug:log';
