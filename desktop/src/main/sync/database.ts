@@ -196,7 +196,8 @@ export function deleteSession(id: number): void {
 }
 
 export function deleteSessionBySessionId(sessionId: string): void {
-  getDb().prepare('DELETE FROM sessions_cache WHERE sessionId = ?').run(sessionId);
+  if (!db) return;
+  db.prepare('DELETE FROM sessions_cache WHERE sessionId = ?').run(sessionId);
 }
 
 // ============================================================================
@@ -288,7 +289,8 @@ export function getOperation(id: number): PendingOperation | undefined {
 }
 
 export function getAllPendingOperations(): PendingOperation[] {
-  return getDb()
+  if (!db) return [];
+  return db
     .prepare('SELECT * FROM pending_operations ORDER BY createdAt ASC')
     .all() as PendingOperation[];
 }
@@ -322,8 +324,8 @@ export function deleteOperationsByResource(resourceId: string): void {
 // ============================================================================
 
 export function setUserSettingCache(key: string, value: string): void {
-  getDb()
-    .prepare(
+  if (!db) return;
+  db.prepare(
       `INSERT INTO user_settings_cache (key, value, updatedAt)
        VALUES (@key, @value, @updatedAt)
        ON CONFLICT(key) DO UPDATE SET value = @value, updatedAt = @updatedAt`
@@ -332,7 +334,8 @@ export function setUserSettingCache(key: string, value: string): void {
 }
 
 export function getUserSettingCache(key: string): string | null {
-  const row = getDb()
+  if (!db) return null;
+  const row = db
     .prepare('SELECT value FROM user_settings_cache WHERE key = ?')
     .get(key) as { value: string } | undefined;
   return row?.value ?? null;

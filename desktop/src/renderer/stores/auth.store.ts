@@ -47,26 +47,36 @@ export const useAuthStore = create<AuthStore>()(
 
       login: async (email, password) => {
         set({ isLoading: true, error: null });
-        const result = await window.electronAPI.auth.login(email, password);
-        if (result.success) {
-          if (result.token) setApiToken(result.token);
-          set({ user: result.user ?? null, isAuthenticated: true, isLoading: false });
-        } else {
-          set({ error: result.error ?? 'Login gagal', isLoading: false });
+        try {
+          const result = await window.electronAPI.auth.login(email, password);
+          if (result.success) {
+            if (result.token) setApiToken(result.token);
+            set({ user: result.user ?? null, isAuthenticated: true, isLoading: false });
+          } else {
+            set({ error: result.error ?? 'Login gagal', isLoading: false });
+          }
+          return result;
+        } catch {
+          set({ error: 'Gagal terhubung ke aplikasi', isLoading: false });
+          return { success: false, error: 'Gagal terhubung ke aplikasi' };
         }
-        return result;
       },
 
       register: async (email, password, name) => {
         set({ isLoading: true, error: null });
-        const result = await window.electronAPI.auth.register(email, password, name);
-        if (result.success) {
-          if (result.token) setApiToken(result.token);
-          set({ user: result.user ?? null, isAuthenticated: true, isLoading: false });
-        } else {
-          set({ error: result.error ?? 'Registrasi gagal', isLoading: false });
+        try {
+          const result = await window.electronAPI.auth.register(email, password, name);
+          if (result.success) {
+            if (result.token) setApiToken(result.token);
+            set({ user: result.user ?? null, isAuthenticated: true, isLoading: false });
+          } else {
+            set({ error: result.error ?? 'Registrasi gagal', isLoading: false });
+          }
+          return result;
+        } catch {
+          set({ error: 'Gagal terhubung ke aplikasi', isLoading: false });
+          return { success: false, error: 'Gagal terhubung ke aplikasi' };
         }
-        return result;
       },
 
       logout: async () => {

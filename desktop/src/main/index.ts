@@ -173,7 +173,9 @@ app.whenReady().then(async () => {
   ipcMain.handle(IPC.AUTH_LOGIN, async (_event, { email, password }: { email: string; password: string }) => {
     const result = await authManager!.login(email, password);
     if (result.success) {
-      startScreenMonitoring();
+      try { startScreenMonitoring(); } catch (err) {
+        console.error('[Main] startScreenMonitoring after login failed:', err);
+      }
     }
     return result;
   });
@@ -181,7 +183,9 @@ app.whenReady().then(async () => {
   ipcMain.handle(IPC.AUTH_REGISTER, async (_event, { email, password, name }: { email: string; password: string; name: string }) => {
     const result = await authManager!.register(email, password, name);
     if (result.success) {
-      startScreenMonitoring();
+      try { startScreenMonitoring(); } catch (err) {
+        console.error('[Main] startScreenMonitoring after register failed:', err);
+      }
     }
     return result;
   });
@@ -293,6 +297,11 @@ app.whenReady().then(async () => {
   const shortcutKey = process.platform === 'darwin' ? 'Command+Shift+N' : 'Ctrl+Shift+N';
   globalShortcut.register(shortcutKey, () => {
     mainWindow?.webContents.send(IPC.NOTE_SHORTCUT_TRIGGERED);
+  });
+
+  // Shortcut Ctrl+Shift+I → buka DevTools untuk debugging (bisa dipakai di production)
+  globalShortcut.register('Ctrl+Shift+I', () => {
+    mainWindow?.webContents.toggleDevTools();
   });
 
   app.on('activate', () => {
