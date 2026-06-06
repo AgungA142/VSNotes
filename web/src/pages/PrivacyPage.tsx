@@ -190,10 +190,10 @@ export default function PrivacyPage() {
           <p className="text-sm text-indigo-800">
             <strong>Email:</strong>{' '}
             <a
-              href="mailto:agung.alfatah43@gmail.com"
+              href="mailto:rampung.space@gmail.com"
               className="underline hover:text-indigo-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:rounded"
             >
-              agung.alfatah43@gmail.com
+              rampung.space@gmail.com
             </a>
           </p>
         </div>

@@ -245,8 +245,8 @@ export default function DocsPage() {
             Ada pertanyaan lain? Lihat halaman{' '}
             <a href="/faq" className="font-semibold underline hover:text-indigo-900">FAQ</a>{' '}
             atau hubungi kami di{' '}
-            <a href="mailto:agung.alfatah43@gmail.com" className="font-semibold underline hover:text-indigo-900">
-              agung.alfatah43@gmail.com
+            <a href="mailto:rampung.space@gmail.com" className="font-semibold underline hover:text-indigo-900">
+              rampung.space@gmail.com
             </a>.
           </p>
         </div>

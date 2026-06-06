@@ -20,7 +20,7 @@ export const LANDING_CONFIG = {
     },
   },
   contact: {
-    email: 'agung.alfatah43@gmail.com',
+    email: 'rampung.space@gmail.com',
     docs: '/docs',
     faq: '/faq',
   },
