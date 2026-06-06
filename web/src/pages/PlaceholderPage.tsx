@@ -31,7 +31,7 @@ export function PlaceholderPage({ title, description }: PlaceholderPageProps) {
 
       <Link
         to="/"
-        className="inline-flex items-center gap-2 text-sm text-indigo-400 hover:text-indigo-300 transition-colors"
+        className="inline-flex items-center gap-2 text-sm text-indigo-400 hover:text-indigo-300 transition-colors min-h-[44px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:rounded"
       >
         <ArrowLeft className="w-4 h-4" />
         Kembali ke Beranda

@@ -117,7 +117,7 @@ export default function HeroSection() {
                 <span className="text-xs text-indigo-300 font-medium tracking-wide">AI-Powered · Windows 1.0.0</span>
               </div>
 
-              <h1 className="text-4xl md:text-5xl lg:text-[3.25rem] font-bold text-white leading-tight mb-4">
+              <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-[3.25rem] font-bold text-white leading-tight mb-4">
                 {LANDING_CONFIG.app.fullName}
               </h1>
               <p className="text-lg md:text-xl text-indigo-300 font-medium mb-3">

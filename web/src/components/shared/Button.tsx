@@ -22,7 +22,7 @@ const variants = {
 };
 
 const sizes = {
-  sm: 'text-sm px-4 py-2 min-h-[36px]',
+  sm: 'text-sm px-4 py-2 min-h-[44px]',
   md: 'text-base px-6 py-3 min-h-[44px]',
   lg: 'text-lg px-8 py-4 min-h-[52px]',
 };

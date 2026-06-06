@@ -45,7 +45,7 @@ export default function BenefitsSection() {
             { value: 'Offline', label: 'Sync saat online' },
           ].map((stat) => (
             <div key={stat.value} className="py-5 rounded-2xl bg-white/5 border border-white/10">
-              <p className="text-2xl font-bold text-white mb-1">{stat.value}</p>
+              <p className="text-xl sm:text-2xl font-bold text-white mb-1">{stat.value}</p>
               <p className="text-xs text-slate-400">{stat.label}</p>
             </div>
           ))}
