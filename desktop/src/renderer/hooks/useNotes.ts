@@ -1,4 +1,4 @@
-﻿/**
+/**
  * useNotes Hook
  * TanStack Query wrapper for notes API
  * 

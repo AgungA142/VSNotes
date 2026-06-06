@@ -1,4 +1,4 @@
-﻿/**
+/**
  * UI Store (Zustand)
  * Manages UI state: modals, sidebar, theme preferences
  * 

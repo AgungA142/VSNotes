@@ -1,4 +1,4 @@
-﻿import React, { useCallback } from 'react';
+import React, { useCallback } from 'react';
 import { useSummary, useGenerateSummary } from '../hooks/useSummary';
 import { useNotes } from '../hooks/useNotes';
 import { useSessionStore } from '../stores/session.store';

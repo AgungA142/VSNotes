@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useRef, useState, useCallback } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { List, type RowComponentProps } from 'react-window';
 import { useNotes, useCreateNote, useUpdateNote, useDeleteNote } from '../hooks/useNotes';
 import { useNoteShortcut } from '../hooks/useNoteShortcut';
