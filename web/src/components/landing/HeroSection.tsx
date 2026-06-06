@@ -85,7 +85,7 @@ export default function HeroSection() {
           style={{ background: 'radial-gradient(circle, rgba(124,58,237,.14) 0%, transparent 70%)', filter: 'blur(60px)' }} />
 
         {/* Navbar */}
-        <nav className="relative z-10 flex items-center justify-between px-6 md:px-12 pt-6 pb-2">
+        <nav aria-label="Navigasi utama" className="relative z-10 flex items-center justify-between px-6 md:px-12 pt-6 pb-2">
           <div className="flex items-center gap-3">
             <AppLogo />
             <span className="text-white font-bold text-lg tracking-tight">VSNotes</span>

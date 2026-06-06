@@ -27,6 +27,8 @@ export default function Landing() {
         <meta name="twitter:title" content={LANDING_CONFIG.seo.title} />
         <meta name="twitter:description" content={LANDING_CONFIG.seo.description} />
         <meta name="twitter:image" content={LANDING_CONFIG.seo.ogImage} />
+        <meta name="robots" content="index, follow" />
+        <link rel="canonical" href={LANDING_CONFIG.seo.url} />
       </Helmet>
 
       <ErrorBoundary>
