@@ -31,6 +31,6 @@
     "pnpm": ">=8.0.0"
   },
   "pnpm": {
-    "neverBuiltDependencies": ["better-sqlite3"]
+    "neverBuiltDependencies": ["better-sqlite3", "puppeteer"]
   }
 }
