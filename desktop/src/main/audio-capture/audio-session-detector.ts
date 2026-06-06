@@ -16,15 +16,17 @@ import { app } from 'electron';
 
 const CACHE_TTL_MS = 3_000; // reuse result within one poll cycle
 
-function getPythonScriptPath(): string {
-  if (app.isPackaged) {
-    return path.join(process.resourcesPath, 'python', 'audio_agent.py');
+function getAudioAgentCommand(): { exe: string; args: string[] } {
+  if (app.isPackaged && process.platform === 'win32') {
+    return { exe: path.join(process.resourcesPath, 'python', 'audio_agent.exe'), args: [] };
   }
-  return path.join(app.getAppPath(), 'python', 'audio_agent.py');
-}
-
-function getPythonExecutable(): string {
-  return process.platform === 'win32' ? 'python' : 'python3';
+  if (app.isPackaged) {
+    const script = path.join(process.resourcesPath, 'python', 'audio_agent.py');
+    return { exe: 'python3', args: [script] };
+  }
+  const script = path.join(app.getAppPath(), 'python', 'audio_agent.py');
+  const pyExe = process.platform === 'win32' ? 'python' : 'python3';
+  return { exe: pyExe, args: [script] };
 }
 
 // ============================================================================
@@ -46,10 +48,9 @@ export class AudioSessionDetector {
   start(): void {
     if (this.process) return;
 
-    const scriptPath = getPythonScriptPath();
-    const pythonExe = getPythonExecutable();
+    const { exe, args } = getAudioAgentCommand();
 
-    this.process = spawn(pythonExe, [scriptPath], {
+    this.process = spawn(exe, args, {
       stdio: ['pipe', 'pipe', 'pipe'],
     });
 

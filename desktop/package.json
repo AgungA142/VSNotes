@@ -59,7 +59,9 @@
         "from": "python",
         "to": "python",
         "filter": [
-          "**/*"
+          "audio_agent.exe",
+          "audio_agent.py",
+          "requirements.txt"
         ]
       }
     ],

@@ -30,18 +30,20 @@ function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-function getPythonScriptPath(): string {
-  // In packaged app: extraResources bundles python/ next to the app
-  if (app.isPackaged) {
-    return path.join(process.resourcesPath, 'python', 'audio_agent.py');
+function getAudioAgentCommand(): { exe: string; args: string[] } {
+  if (app.isPackaged && process.platform === 'win32') {
+    // Packaged Windows: pakai exe standalone — tidak butuh Python terinstall
+    return { exe: path.join(process.resourcesPath, 'python', 'audio_agent.exe'), args: [] };
   }
-  // In development: resolve from the project root
-  return path.join(app.getAppPath(), 'python', 'audio_agent.py');
-}
-
-function getPythonExecutable(): string {
-  // Windows commonly ships 'python'; POSIX systems may need 'python3'
-  return process.platform === 'win32' ? 'python' : 'python3';
+  if (app.isPackaged) {
+    // Packaged non-Windows: masih pakai script
+    const script = path.join(process.resourcesPath, 'python', 'audio_agent.py');
+    return { exe: 'python3', args: [script] };
+  }
+  // Development
+  const script = path.join(app.getAppPath(), 'python', 'audio_agent.py');
+  const pyExe = process.platform === 'win32' ? 'python' : 'python3';
+  return { exe: pyExe, args: [script] };
 }
 
 async function uploadWithRetry(
@@ -99,10 +101,9 @@ export class AudioCaptureManager {
     this.sessionId = sessionId;
     this.lineBuffer = '';
 
-    const scriptPath = getPythonScriptPath();
-    const pythonExe = getPythonExecutable();
+    const { exe, args } = getAudioAgentCommand();
 
-    this.process = spawn(pythonExe, [scriptPath], {
+    this.process = spawn(exe, args, {
       stdio: ['pipe', 'pipe', 'pipe'],
     });
 
