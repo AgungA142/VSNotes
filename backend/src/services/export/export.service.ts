@@ -1,4 +1,5 @@
 import puppeteer from 'puppeteer';
+import chromium from '@sparticuz/chromium';
 import { Session } from '@models/Session';
 import { Note } from '@models/Note';
 import { Summary } from '@models/Summary';
@@ -319,69 +320,15 @@ function buildHtml(
 // PDF generator
 // ============================================================================
 
-// Hapus PUPPETEER_EXECUTABLE_PATH saat modul dimuat jika isinya bukan path absolut.
-// Railway menyetel ini ke "chromium" (nama perintah, bukan path), menyebabkan Puppeteer crash.
-if (process.env.PUPPETEER_EXECUTABLE_PATH && !process.env.PUPPETEER_EXECUTABLE_PATH.startsWith('/')) {
-  delete process.env.PUPPETEER_EXECUTABLE_PATH;
-}
-
-function isRealChromiumBinary(p: string): boolean {
-  // Stub snap Ubuntu dimulai dengan "#!/bin/sh" — bukan binary ELF
-  const { readFileSync } = require('fs') as typeof import('fs');
-  try {
-    const header = readFileSync(p, { flag: 'r' });
-    return header[0] === 0x7f && header[1] === 0x45; // ELF magic
-  } catch {
-    return false;
-  }
-}
-
-function findChromiumExecutable(): string | undefined {
-  const { execSync } = require('child_process') as typeof import('child_process');
-
-  // 1. Cari bundled Chrome puppeteer di node_modules (pnpm cache)
-  try {
-    const found = execSync(
-      'find /app/node_modules/.pnpm /root/.cache/puppeteer -name "chrome" -type f 2>/dev/null | head -3',
-      { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }
-    ).trim();
-    if (found) {
-      const first = found.split('\n')[0];
-      if (first && isRealChromiumBinary(first)) {
-        logger.info(`[Export] Puppeteer bundled chrome found: ${first}`);
-        return first;
-      }
-    }
-  } catch { /* ignore */ }
-
-  // 2. Nix paths (nixpacks Railway)
-  for (const p of ['/nix/var/nix/profiles/default/bin/chromium', '/root/.nix-profile/bin/chromium']) {
-    try {
-      execSync(`test -x ${p}`, { stdio: 'ignore' });
-      if (isRealChromiumBinary(p)) return p;
-    } catch { /* not found */ }
-  }
-
-  // 3. Path absolut umum — skip /usr/bin/chromium-browser (Ubuntu snap stub)
-  for (const p of ['/usr/bin/google-chrome-stable', '/usr/bin/google-chrome', '/usr/bin/chromium']) {
-    try {
-      execSync(`test -x ${p}`, { stdio: 'ignore' });
-      if (isRealChromiumBinary(p)) return p;
-    } catch { /* not found */ }
-  }
-
-  return undefined;
-}
-
 async function generatePdf(html: string): Promise<Buffer> {
   logger.info('[Export] Launching Puppeteer for PDF generation');
-  const executablePath = findChromiumExecutable();
-  logger.info(`[Export] Chromium path: ${executablePath ?? 'not found — puppeteer will try default'}`);
+  const executablePath = await chromium.executablePath();
+  logger.info(`[Export] Chromium path: ${executablePath}`);
 
   const browser = await puppeteer.launch({
     headless: true,
-    ...(executablePath ? { executablePath } : {}),
-    args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage', '--single-process'],
+    executablePath,
+    args: [...chromium.args, '--single-process'],
   });
   try {
     const page = await browser.newPage();
