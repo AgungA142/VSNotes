@@ -107,14 +107,25 @@ export class AudioCaptureManager {
       stdio: ['pipe', 'pipe', 'pipe'],
     });
 
+    const startedAt = Date.now();
+
     this.process.stdout!.on('data', (data: Buffer) => this.onStdoutData(data));
     this.process.stderr!.on('data', (data: Buffer) => {
       console.log(`[audio_agent] ${data.toString().trim()}`);
     });
     this.process.on('error', (err) => this.onProcessError(err));
     this.process.on('exit', (code) => {
-      console.log(`[AudioCaptureManager] Python process exited with code ${code}`);
+      const aliveMs = Date.now() - startedAt;
+      console.log(`[AudioCaptureManager] Process exited code=${code} aliveMs=${aliveMs}`);
       this.process = null;
+
+      // Jika exit < 3 detik dengan kode error → kemungkinan diblokir antivirus atau tidak ada device
+      if (code !== 0 && code !== null && aliveMs < 3_000) {
+        this.showCaptureFailedNotification(
+          'Audio capture tidak bisa dimulai. Pastikan antivirus tidak memblokir VSNotes, ' +
+          'atau periksa apakah perangkat audio tersedia.'
+        );
+      }
     });
 
     const deviceIndex = storeHelpers.getAudioDeviceIndex();
