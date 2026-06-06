@@ -2,7 +2,6 @@ import React, { lazy, Suspense } from 'react';
 import { Routes, Route } from 'react-router-dom';
 import Landing from './pages/Landing';
 import AuthenticatedApp from './pages/AuthenticatedApp';
-import { PlaceholderPage } from './pages/PlaceholderPage';
 
 const DocsPage = lazy(() => import('./pages/DocsPage'));
 const FAQPage = lazy(() => import('./pages/FAQPage'));
