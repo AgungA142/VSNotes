@@ -1,5 +1,5 @@
 /**
- * Generate web/public/og-image.png and web/public/favicon.ico
+ * Generate web/public/og-image.jpg and web/public/favicon.ico
  * from SVG source files using Puppeteer (loaded from backend/node_modules).
  *
  * Usage (from project root):
@@ -45,11 +45,12 @@ async function generateOgImage(browser) {
   const page = await browser.newPage();
   await page.setViewport({ width: 1200, height: 630, deviceScaleFactor: 1 });
   await page.setContent(html, { waitUntil: 'networkidle0' });
-  const png = await page.screenshot({ type: 'png', clip: { x: 0, y: 0, width: 1200, height: 630 } });
+  const jpg = await page.screenshot({ type: 'jpeg', quality: 85, clip: { x: 0, y: 0, width: 1200, height: 630 } });
   await page.close();
 
-  writeFileSync(resolve(ROOT, 'web/public/og-image.png'), png);
-  console.log('✓ og-image.png  (1200×630)');
+  writeFileSync(resolve(ROOT, 'web/public/og-image.jpg'), jpg);
+  const sizeKB = Math.round(jpg.length / 1024);
+  console.log(`✓ og-image.jpg  (1200×630, ${sizeKB} KB)`);
 }
 
 async function generateFavicon(browser) {

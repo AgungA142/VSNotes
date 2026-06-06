@@ -30,7 +30,7 @@ export const LANDING_CONFIG = {
       'Aplikasi desktop gratis untuk merekam, mentranskrip, dan merangkum video edukasi secara otomatis. Hemat waktu belajar dengan AI.',
     keywords:
       'video notes, auto notes, ai summary, transkrip video, belajar online, catatan otomatis, vsnotes',
-    ogImage: '/og-image.png',
+    ogImage: '/og-image.jpg',
     url: 'https://vsnotes.space',
   },
   features: [
