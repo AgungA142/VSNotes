@@ -84,12 +84,9 @@ export default function Footer() {
         </div>
 
         {/* Bottom bar */}
-        <div className="pt-8 border-t border-white/8 flex flex-col sm:flex-row items-center justify-between gap-3">
+        <div className="pt-8 border-t border-white/8 flex items-center justify-center">
           <p className="text-xs text-slate-600">
-            © 2026 Video Summary &amp; Auto-Notes. All rights reserved.
-          </p>
-          <p className="text-xs text-slate-700">
-            Built with ❤️ in Indonesia
+            © 2026 VSNotes. All rights reserved.
           </p>
         </div>
       </div>

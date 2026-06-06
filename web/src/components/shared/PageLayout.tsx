@@ -83,7 +83,7 @@ export default function PageLayout({ title, description, children }: PageLayoutP
 
       {/* Footer strip */}
       <footer className="border-t border-slate-100 py-6 text-center">
-        <p className="text-xs text-slate-400">© 2026 Video Summary &amp; Auto-Notes</p>
+        <p className="text-xs text-slate-400">© 2026 VSNotes</p>
       </footer>
     </div>
   );
