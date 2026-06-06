@@ -10,6 +10,7 @@
   "scripts": {
     "dev": "electron-vite dev",
     "build": "electron-vite build",
+    "rebuild": "electron-rebuild -f -w better-sqlite3",
     "preview": "electron-vite preview",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
@@ -38,7 +39,13 @@
     "productName": "VSNotes",
     "files": [
       "dist/**",
+      "node_modules/better-sqlite3/**",
+      "node_modules/bindings/**",
+      "node_modules/file-uri-to-path/**",
       "package.json"
+    ],
+    "asarUnpack": [
+      "node_modules/better-sqlite3/**"
     ],
     "directories": {
       "output": "release"
@@ -85,6 +92,7 @@
     "@vitest/ui": "^4.1.6",
     "autoprefixer": "^10.4.17",
     "electron": "^28.1.4",
+    "@electron/rebuild": "^3.6.0",
     "electron-builder": "^24.9.1",
     "electron-vite": "^2.0.0",
     "fast-check": "^4.8.0",
