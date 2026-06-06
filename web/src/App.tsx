@@ -1,15 +1,17 @@
-import React from 'react';
+import React, { lazy, Suspense } from 'react';
 import { Routes, Route } from 'react-router-dom';
 import Landing from './pages/Landing';
 import AuthenticatedApp from './pages/AuthenticatedApp';
 import { PlaceholderPage } from './pages/PlaceholderPage';
+
+const DocsPage = lazy(() => import('./pages/DocsPage'));
 
 export default function App() {
   return (
     <Routes>
       <Route path="/" element={<Landing />} />
       <Route path="/app/*" element={<AuthenticatedApp />} />
-      <Route path="/docs" element={<PlaceholderPage title="Dokumentasi" />} />
+      <Route path="/docs" element={<Suspense fallback={<div className="min-h-screen bg-slate-950" />}><DocsPage /></Suspense>} />
       <Route path="/faq" element={<PlaceholderPage title="FAQ" />} />
       <Route path="/privacy" element={<PlaceholderPage title="Privacy Policy" />} />
       <Route
