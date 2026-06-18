@@ -55,6 +55,9 @@ _session_id: str | None = None
 _is_paused = False
 _stop_event = threading.Event()
 _capture_thread: threading.Thread | None = None
+_monitor_thread: threading.Thread | None = None
+_current_device_name: str | None = None
+_preferred_device_index: int | None = None
 
 # ============================================================================
 # Helpers
@@ -274,11 +277,70 @@ def capture_loop(device, is_loopback: bool) -> None:
         log("Audio stream closed")
 
 # ============================================================================
+# Device change monitor
+# ============================================================================
+
+def _get_current_default_speaker_name() -> str | None:
+    """Return the name of the current default output device, or None on error."""
+    try:
+        return sc.default_speaker().name
+    except Exception:
+        return None
+
+
+def _restart_capture_with_device(preferred_index: int | None) -> None:
+    """Stop the current capture thread and start a new one with the current default device."""
+    global _capture_thread, _current_device_name, _stop_event
+
+    log("Default audio device changed — restarting capture stream")
+    _stop_event.set()
+    if _capture_thread and _capture_thread.is_alive():
+        _capture_thread.join(timeout=5)
+
+    _stop_event.clear()
+    device, is_loopback = find_loopback_device(preferred_index)
+
+    with _lock:
+        _current_device_name = device.name
+
+    _capture_thread = threading.Thread(
+        target=capture_loop,
+        args=(device, is_loopback),
+        daemon=True,
+        name="audio-capture",
+    )
+    _capture_thread.start()
+    log(f"Capture restarted on new device: {device.name}")
+
+
+def device_monitor_loop() -> None:
+    """Poll the default audio output device every 3 seconds; restart capture if it changes."""
+    global _current_device_name, _preferred_device_index
+
+    while not _stop_event.is_set():
+        time.sleep(3)
+
+        with _lock:
+            sid = _session_id
+            preferred = _preferred_device_index
+            known_name = _current_device_name
+
+        if sid is None:
+            continue
+
+        new_name = _get_current_default_speaker_name()
+        if new_name and known_name and new_name != known_name:
+            log(f"Device switch detected: '{known_name}' → '{new_name}'")
+            _restart_capture_with_device(preferred)
+
+
+# ============================================================================
 # Command handler
 # ============================================================================
 
 def handle_command(cmd: dict) -> None:
-    global _session_id, _is_paused, _capture_thread
+    global _session_id, _is_paused, _capture_thread, _monitor_thread, \
+           _current_device_name, _preferred_device_index
 
     action = cmd.get("action")
 
@@ -298,9 +360,12 @@ def handle_command(cmd: dict) -> None:
             _session_id = cmd.get("sessionId")
             _is_paused = False
             _stop_event.clear()
+            _preferred_device_index = cmd.get("deviceIndex")  # int | None
 
-        preferred = cmd.get("deviceIndex")  # int | None
-        device, is_loopback = find_loopback_device(preferred)
+        device, is_loopback = find_loopback_device(_preferred_device_index)
+
+        with _lock:
+            _current_device_name = device.name
 
         _capture_thread = threading.Thread(
             target=capture_loop,
@@ -309,12 +374,24 @@ def handle_command(cmd: dict) -> None:
             name="audio-capture",
         )
         _capture_thread.start()
+
+        # Start monitor only if not already running
+        if _monitor_thread is None or not _monitor_thread.is_alive():
+            _monitor_thread = threading.Thread(
+                target=device_monitor_loop,
+                daemon=True,
+                name="device-monitor",
+            )
+            _monitor_thread.start()
+
         log(f"Capture started for session {_session_id} (device={device.name})")
 
     elif action == "stop":
         with _lock:
             _session_id = None
             _is_paused = False
+            _current_device_name = None
+            _preferred_device_index = None
         _stop_event.set()
         if _capture_thread:
             _capture_thread.join(timeout=5)
